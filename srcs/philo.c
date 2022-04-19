@@ -6,84 +6,98 @@
 /*   By: lelhlami <lelhlami@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/09 12:38:43 by lelhlami          #+#    #+#             */
-/*   Updated: 2022/04/12 12:33:06 by lelhlami         ###   ########.fr       */
+/*   Updated: 2022/04/19 18:49:37 by lelhlami         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/philo.h"
 
-pthread_mutex_t lock[2];
-
-void    sleeping_time(int i)
+void	 eating_time(t_philo *philo)
 {
-    printf("I am sleeping  %d\n", i);
+    pthread_mutex_lock(&philo->lock_state);
+    philo->last_meal = get_time_now();
+    philo->must_eat--;
+    philo->state = EATING;
+    printf("%d\t%d is eating\n", get_time_now() - philo->args->start_time , philo->id + 1);
+    pthread_mutex_unlock(&philo->lock_state);
+    if (!philo->must_eat)
+    {
+        printf("%d\t%d died\n", get_time_now() - philo->args->start_time , philo->id + 1);
+        exit(0);
+    }
+    usleep(philo->args->time_to_eat * 1000);
 }
 
-void	 eating_time(int i)
+void	 thinking_time(t_philo *philo)
 {
-    printf("I am eating  %d\n", i);
+    pthread_mutex_lock(&philo->lock_state);
+    printf("%d\t%d is thinking\n", get_time_now() - philo->args->start_time , philo->id + 1);
+    philo->state = THINKING;
+    pthread_mutex_unlock(&philo->lock_state);
 }
 
-void	 thinking_time(int i)
+void    pick_shopstick(t_philo *philo)
 {
-    printf("I am thinking %d\n", i);
+    pthread_mutex_lock(&philo->args->shopsticks[philo->shopstick_l].lock);
+    printf("%d\t%d has taken a fork\n", get_time_now() - philo->args->start_time , philo->id + 1);
+    pthread_mutex_lock(&philo->args->shopsticks[philo->shopstick_r].lock);
+    printf("%d\t%d has taken a fork\n", get_time_now() - philo->args->start_time , philo->id + 1);
 }
 
-void    pick_shopstick(int i)
+void    leave_shopstick(t_philo *philo)
 {
-    pthread_mutex_lock(&lock[0]);
-    pthread_mutex_unlock(&lock[0]);
-    pthread_mutex_lock(&lock[1]);
-    printf("I am picking shopstick %d\n", i);
+    pthread_mutex_unlock(&philo->args->shopsticks[philo->shopstick_l].lock);
+    pthread_mutex_unlock(&philo->args->shopsticks[philo->shopstick_r].lock);
+    printf("%d\t%d is sleeping\n", get_time_now() - philo->args->start_time , philo->id + 1);
+    usleep(philo->args->time_to_sleep * 1000);
 }
 
-void    leave_shoptick(int i)
+void	*philosopher(void *philo_arg)
 {
-    printf("Leaving shopstick %d\n", i);
-}
+	t_philo		*philo;
 
-void    philosopher(void *arg)
-{
-    t_philo *philo;
-
-    philo = (t_philo*)arg;
+	philo = (t_philo*)philo_arg;
+	while (1)
+	{
+        if (get_time_now() > philo->last_meal + philo->args->time_to_die)
+        {
+            printf("%d\t%d died\n", get_time_now() - philo->args->start_time , philo->id + 1);
+            exit(0);
+        }
+		pick_shopstick(philo);
+		eating_time(philo);
+		leave_shopstick(philo);
+        thinking_time(philo);
+	}
 }
 
 int	main(int ac, char **av)
 {
 	pthread_t	*th;
-    t_philo     *philo;
-    int         i;
-    int         nb_philo;
+    t_args      args;
+	int			i;
 
 	chek_av(ac, av);
-    nb_philo = ft_atoi(av[1]);
-    philo = alloc_it(nb_philo);
-    init_philo(av, philo);
     i = -1;
-    th = (pthread_t *)malloc(sizeof(pthread_t) * nb_philo);
-    if (!th)
+    init_philos(ac, av, &args);
+    args.start_time = get_time_now();
+    args.nb_ph = ft_atoi(av[1]);
+    th = malloc(sizeof(pthread_t) * args.nb_ph);
+    i = -1;
+	while (++i < args.nb_ph)
 	{
-		write(1, "Issue in memory allocation\n", 28);
-		exit(0);
+		if (pthread_create(&th[i], NULL, &philosopher, &args.philos[i]))
+		{
+			write(1, "Issue in thread creation\n", 25);
+			exit(0);
+		}
+        usleep(100);
 	}
     i = -1;
-    while (++i < nb_philo)
-        if (pthread_create(&th[i], NULL, (void *)&philosopher, philo))
-        {
-            write(1, "Issue in thread creation\n", 25);
-            exit(0);
-        }
-    i = -1;
-    while (++i < nb_philo)
-    {
-        if (pthread_join(th[i], NULL))
-        {
-            write(1, "Issue in thread joining\n", 25);
-            exit(0);
-        }
-    }
-    free(philo);
-    // system("leaks philo");
+    while (++i < args.nb_ph)
+        pthread_join(th[i], NULL);
+    free(args.shopsticks);
+    free(args.philos);
+    free(th);
     return (0);
 }

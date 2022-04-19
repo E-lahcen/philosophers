@@ -6,7 +6,7 @@
 /*   By: lelhlami <lelhlami@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/09 14:49:04 by lelhlami          #+#    #+#             */
-/*   Updated: 2022/04/12 12:26:40 by lelhlami         ###   ########.fr       */
+/*   Updated: 2022/04/19 17:31:31 by lelhlami         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,34 +64,46 @@ int	ft_atoi(const char *str)
 	return (check_out_nbr(nbr, is_negative));
 }
 
-void	init_philo(char **av, t_philo *philo)
+void	*init_philos(int ac, char **av, t_args *args)
 {
-	int nb;
 	int i;
+	int nbp;
 
-	nb = ft_atoi(av[1]);
+	nbp = ft_atoi(av[1]);
+	args->philos = (t_philo *)malloc(sizeof(t_philo) * nbp);
+	args->shopsticks = (t_shopsticks *)malloc(sizeof(t_shopsticks) * nbp);
+	args->nb_ph = nbp;
+	if (!args->philos || !args->shopsticks)
+		exit(0);
 	i = -1;
-	while (++i < nb)
+	while (++i < nbp)
 	{
-		philo[i].id = i;
-		philo[i].state = THINKING;
-		philo[i].time_to_die = ft_atoi(av[2]);
-		philo[i].time_to_eat = ft_atoi(av[3]);
-		philo[i].time_to_sleep = ft_atoi(av[4]);
+		args->philos[i].id = i;
+		args->philos[i].state = THINKING;
+		args->philos[i].shopstick_r = (i + 1) % nbp;
+		args->philos[i].shopstick_l = i;
+		args->time_to_die = ft_atoi(av[2]);
+		args->time_to_eat = ft_atoi(av[3]);
+		args->time_to_sleep = ft_atoi(av[4]);
+		args->philos[i].args = args;
+		if(ac == 6)
+			args->philos[i].must_eat = ft_atoi(av[5]);
+		else 
+			args->philos[i].must_eat = -1;
+		args->shopsticks[i].free = 1;
+		args->shopsticks[i].id = i;
+		args->philos[i].last_meal = get_time_now();
+		pthread_mutex_init(&args->shopsticks[i].lock, NULL);
+		pthread_mutex_init(&args->philos[i].lock_state, NULL);
 	}
+	return (0);
 }
 
-t_philo	*alloc_it(int size)
+int	get_time_now()
 {
-	t_philo *philo;
-
-	philo = (t_philo *)malloc(sizeof(t_philo) * size);
-	if (!philo)
-	{
-		write(1, "Issue in memory allocation\n", 28);
-		exit(0);
-	}
-	return (philo);
+	struct timeval	time;
+	gettimeofday(&time, NULL);
+	return ((time.tv_sec * 1000) + (time.tv_usec / 1000));
 }
 
 void	chek_av(int ac, char **av)

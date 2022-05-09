@@ -6,7 +6,7 @@
 #    By: lelhlami <lelhlami@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/04/09 13:56:29 by lelhlami          #+#    #+#              #
-#    Updated: 2022/04/09 14:56:58 by lelhlami         ###   ########.fr        #
+#    Updated: 2022/05/09 11:15:30 by lelhlami         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -17,7 +17,9 @@ SRC_PATH  = srcs
 OBJ_PATH  = objs
 
 SOURCES = 	philo.c \
-			utils.c
+			utils.c \
+			utils3.c \
+			utils2.c
 
 SRCS = $(addprefix $(SRC_PATH)/,$(SOURCES))
 
@@ -56,15 +58,20 @@ tmp:
 	@mkdir -p objs
 
 %.o : %.c
+
 	@$(CC) $(FLAGS) -c $<
 clean:
 	@echo "$(VIOLET)Deleting Philosophers library files$(CYAN)"
 	@rm -f $(OBJS)
+	@make clean -C ../philo_bonus
 
 fclean: clean
 	@rm -f $(NAME)
 	@rm -rf $(OBJ_PATH)
+	@make fclean -C ../philo_bonus
 
 re: fclean all
 
+bonus:
+	make -C ../philo_bonus
 .PHONY: tmp, re, fclean, clean, bonus, all

@@ -6,129 +6,75 @@
 /*   By: lelhlami <lelhlami@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/09 14:49:04 by lelhlami          #+#    #+#             */
-/*   Updated: 2022/04/19 17:31:31 by lelhlami         ###   ########.fr       */
+/*   Updated: 2022/05/09 13:35:17 by lelhlami         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/philo.h"
 
-int	ft_strlen(const char *s)
+void	init_philos(int ac, char **av, t_args *args)
 {
 	int	i;
 
-	i = 0;
-	while (s[i] != '\0')
-	{
-		i++;
-	}
-	return (i);
-}
-
-int	check_out_nbr(unsigned long nbr, int neg)
-{
-	if (nbr > 9223372036854775807)
-	{
-		if (neg == 1)
-			return (-1);
-		else if (neg == -1)
-			return (0);
-	}
-	return (nbr * neg);
-}
-
-int	ft_atoi(const char *str)
-{
-	unsigned long			nbr;
-	int						is_negative;
-
-	nbr = 0;
-	is_negative = 1;
-	while ((*str == ' ' || *str == '\t' || *str == '\n' || *str
-			== '\r' || *str == '\v' || *str == '\f'))
-		str++;
-	if (*str == '+')
-		str++;
-	else if (*str == '-')
-	{
-		str++;
-		is_negative = -1;
-	}
-	while (*str != '\0')
-	{
-		if (*str >= '0' && *str <= '9')
-			nbr = nbr * 10 + (*str - 48);
-		else
-			return (is_negative * nbr);
-		str++;
-	}
-	return (check_out_nbr(nbr, is_negative));
-}
-
-void	*init_philos(int ac, char **av, t_args *args)
-{
-	int i;
-	int nbp;
-
-	nbp = ft_atoi(av[1]);
-	args->philos = (t_philo *)malloc(sizeof(t_philo) * nbp);
-	args->shopsticks = (t_shopsticks *)malloc(sizeof(t_shopsticks) * nbp);
-	args->nb_ph = nbp;
+	args->philos = (t_philo *)malloc(sizeof(t_philo) * ft_atoi(av[1]));
+	args->shopsticks = malloc(sizeof(pthread_mutex_t) * ft_atoi(av[1]));
+	args->nb_ph = ft_atoi(av[1]);
 	if (!args->philos || !args->shopsticks)
 		exit(0);
 	i = -1;
-	while (++i < nbp)
+	while (++i < ft_atoi(av[1]))
 	{
 		args->philos[i].id = i;
-		args->philos[i].state = THINKING;
-		args->philos[i].shopstick_r = (i + 1) % nbp;
+		args->philos[i].shopstick_r = (i + 1) % ft_atoi(av[1]);
 		args->philos[i].shopstick_l = i;
+		args->philos[i].args = args;
+		args->philos[i].is_eating = 0;
+		args->philos[i].last_meal = get_time_now();
+		if (ac == 6)
+			args->philos[i].must_eat = ft_atoi(av[5]);
+		else
+			args->philos[i].must_eat = -1;
+		init_args(av, args);
+	}
+}
+
+void	init_args(char **av, t_args *args)
+{
+	int	i;
+
+	i = -1;
+	while (++i < args->nb_ph)
+	{
 		args->time_to_die = ft_atoi(av[2]);
 		args->time_to_eat = ft_atoi(av[3]);
 		args->time_to_sleep = ft_atoi(av[4]);
-		args->philos[i].args = args;
-		if(ac == 6)
-			args->philos[i].must_eat = ft_atoi(av[5]);
-		else 
-			args->philos[i].must_eat = -1;
-		args->shopsticks[i].free = 1;
-		args->shopsticks[i].id = i;
-		args->philos[i].last_meal = get_time_now();
-		pthread_mutex_init(&args->shopsticks[i].lock, NULL);
-		pthread_mutex_init(&args->philos[i].lock_state, NULL);
+		args->ph_must_eat = 0;
+		// pthread_mutex_init(&args->philos[i].lock_state, NULL);
+		pthread_mutex_init(&args->shopsticks[i], NULL);
 	}
-	return (0);
 }
 
-int	get_time_now()
+int	get_time_now(void)
 {
 	struct timeval	time;
+
 	gettimeofday(&time, NULL);
 	return ((time.tv_sec * 1000) + (time.tv_usec / 1000));
 }
 
-void	chek_av(int ac, char **av)
+void	time_sleep_checker(t_philo *philo)
 {
-	int len;
-	int i;
-	int j;
-
-	if (ac < 5 || ac > 6)
+	int time;
+	int a = -1;
+	while (++a < 35)
 	{
-		write(1, "Issue in number of arguments!\nPlease provide : number_of_philosophers | time_to_die | time_to_eat | time_to_sleep\n", 114);
-		exit(0);
-	}
-	i = 0;
-	while (++i < ac)
-	{
-		len = ft_strlen(av[i]);
-		j = -1;
-		while (++j < len)
+		if (!philo->is_eating && get_time_now() > philo->last_meal + philo->args->time_to_die)
 		{
-			if (av[i][j] < '0' || av[i][j] > '9')
-			{
-				write(1, "Issue in arguments!\nPlease provide : number_of_philosophers | time_to_die | time_to_eat | time_to_sleep\n", 114);
-				exit(0);
-			}
+			time = get_time_now() - philo->args->start_time;
+			printf("%d %d died\n", time, philo->id + 1);
+			// pthread_mutex_unlock(&philo->lock_state);
+			exit(0);
 		}
+		usleep(10);
 	}
 }

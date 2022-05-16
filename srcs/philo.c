@@ -6,41 +6,38 @@
 /*   By: lelhlami <lelhlami@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/09 12:38:43 by lelhlami          #+#    #+#             */
-/*   Updated: 2022/05/09 11:54:54 by lelhlami         ###   ########.fr       */
+/*   Updated: 2022/05/16 16:09:53 by lelhlami         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/philo.h"
 
-void	controller(void *arg)
+void	controller(t_args *args)
 {
-	t_philo	*philo;
-	int		time;
+	uint64_t	time;
+	uint64_t	i;
 
-	philo = (t_philo *)arg;
+	i = 0;
 	while (1)
 	{
-		// pthread_mutex_lock(&philo->lock_state);
-		if (!philo->is_eating && get_time_now() > philo->last_meal + philo->args->time_to_die)
+		i++;
+		if (i == args->nb_ph)
+			i = 0;
+		time = args->philos[i].last_meal + args->time_to_die;
+		if (!args->philos[i].is_eating && get_time_now() > time)
 		{
-			time = get_time_now() - philo->args->start_time;
-			printf("%d %d died\n", time, philo->id + 1);
-			// pthread_mutex_unlock(&philo->lock_state);
+			time = get_time_now() - args->start_time;
+			printf("%llu %llu died\n", get_time_now() - args->start_time, i + 1);
 			exit(0);
 		}
-		// pthread_mutex_unlock(&philo->lock_state);
-		time_sleep_checker(philo);
+		time_sleep_checker(&args->philos[i], 30);
 	}
 }
 
 void	*philosopher(void *philo_arg)
 {
 	t_philo		*philo;
-	pthread_t	th;
 
-	if (pthread_create(&th, NULL, (void *)&controller, philo_arg))
-		exit(0);
-	pthread_detach(th);
 	philo = (t_philo *)philo_arg;
 	while (1)
 	{
@@ -55,10 +52,12 @@ int	main(int ac, char **av)
 {
 	pthread_t	*th;
 	t_args		args;
-	int			i;
+	uint64_t			i;
 
-	chek_av(ac, av);
+	check_av(ac, av);
 	args.nb_ph = ft_atoi(av[1]);
+	if (args.nb_ph > 1000)
+		return(printf("Big amount of philos, Malloc issue.\n"));
 	args.start_time = get_time_now();
 	init_philos(ac, av, &args);
 	th = malloc(sizeof(pthread_t) * args.nb_ph);
@@ -69,8 +68,9 @@ int	main(int ac, char **av)
 	{
 		if (pthread_create(&th[i], NULL, &philosopher, &args.philos[i]))
 			exit(printf("Issue in thread creation\n"));
-		time_sleep_checker(&args.philos[i]);
+		my_sleep(100);
 	}
+	controller(&args);
 	i = -1;
 	while (++i < args.nb_ph)
 		pthread_join(th[i], NULL);

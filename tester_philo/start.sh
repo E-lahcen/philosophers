@@ -64,7 +64,7 @@ test_two ()
     done
     sleep 1
     if [ $error -eq 0 ];then
-        pkill $1
+        pkill w
         echo "\r\e[92m[+] Test #2 Succeeded\e[0m"
     fi
 }
@@ -180,13 +180,13 @@ if [ "$2" -eq 1 -o "$2" -eq 0 ];then
         exit
     fi
 
-    test_one $target $1
-
     echo "\e[94m[+] Test #4 on progress, please wait...\e[0m"
     test_four $target $1 7 28 1
     test_four $target $1 10 40 2
     test_four $target $1 12 48 3
     test_four $target $1 15 60 4
+
+    test_one $target $1
 
     test_two $target $1
 

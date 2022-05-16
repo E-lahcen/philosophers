@@ -6,7 +6,7 @@
 /*   By: lelhlami <lelhlami@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/09 14:49:04 by lelhlami          #+#    #+#             */
-/*   Updated: 2022/05/09 13:35:17 by lelhlami         ###   ########.fr       */
+/*   Updated: 2022/05/16 13:18:51 by lelhlami         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,11 +14,10 @@
 
 void	init_philos(int ac, char **av, t_args *args)
 {
-	int	i;
+	uint64_t	i;
 
-	args->philos = (t_philo *)malloc(sizeof(t_philo) * ft_atoi(av[1]));
-	args->shopsticks = malloc(sizeof(pthread_mutex_t) * ft_atoi(av[1]));
-	args->nb_ph = ft_atoi(av[1]);
+	args->philos = (t_philo *)malloc(sizeof(t_philo) * args->nb_ph);
+	args->shopsticks = malloc(sizeof(pthread_mutex_t) * args->nb_ph);
 	if (!args->philos || !args->shopsticks)
 		exit(0);
 	i = -1;
@@ -34,27 +33,25 @@ void	init_philos(int ac, char **av, t_args *args)
 			args->philos[i].must_eat = ft_atoi(av[5]);
 		else
 			args->philos[i].must_eat = -1;
-		init_args(av, args);
+		pthread_mutex_init(&args->philos[i].lock_controller, NULL);
 	}
+	init_args(av, args);
 }
 
 void	init_args(char **av, t_args *args)
 {
-	int	i;
+	uint64_t	i;
 
+	args->time_to_die = ft_atoi(av[2]);
+	args->time_to_eat = ft_atoi(av[3]);
+	args->time_to_sleep = ft_atoi(av[4]);
+	args->ph_must_eat = 0;
 	i = -1;
 	while (++i < args->nb_ph)
-	{
-		args->time_to_die = ft_atoi(av[2]);
-		args->time_to_eat = ft_atoi(av[3]);
-		args->time_to_sleep = ft_atoi(av[4]);
-		args->ph_must_eat = 0;
-		// pthread_mutex_init(&args->philos[i].lock_state, NULL);
 		pthread_mutex_init(&args->shopsticks[i], NULL);
-	}
 }
 
-int	get_time_now(void)
+uint64_t	get_time_now(void)
 {
 	struct timeval	time;
 
@@ -62,19 +59,30 @@ int	get_time_now(void)
 	return ((time.tv_sec * 1000) + (time.tv_usec / 1000));
 }
 
-void	time_sleep_checker(t_philo *philo)
+void	time_sleep_checker(t_philo *philo, int loop)
 {
-	int time;
-	int a = -1;
-	while (++a < 35)
+	uint64_t	time;
+	int			a;
+
+	a = -1;
+	while (++a < loop)
 	{
-		if (!philo->is_eating && get_time_now() > philo->last_meal + philo->args->time_to_die)
+		if (!philo->is_eating && get_time_now() > philo->last_meal \
+		+ philo->args->time_to_die)
 		{
 			time = get_time_now() - philo->args->start_time;
-			printf("%d %d died\n", time, philo->id + 1);
-			// pthread_mutex_unlock(&philo->lock_state);
+			printf("%llu %d died\n", time, philo->id + 1);
 			exit(0);
 		}
 		usleep(10);
 	}
+}
+
+void	my_sleep(uint64_t pause)
+{
+	uint64_t	time;
+
+	time = get_time_now();
+	while (get_time_now() < time + pause)
+		usleep(50);
 }

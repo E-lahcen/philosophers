@@ -6,15 +6,15 @@
 /*   By: lelhlami <lelhlami@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/26 17:11:17 by lelhlami          #+#    #+#             */
-/*   Updated: 2022/04/26 18:19:05 by lelhlami         ###   ########.fr       */
+/*   Updated: 2022/05/16 13:03:44 by lelhlami         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/philo.h"
 
-int	ft_strlen(const char *s)
+int ft_strlen(const char *s)
 {
-	int	i;
+	uint64_t i;
 
 	i = 0;
 	while (s[i] != '\0')
@@ -24,47 +24,27 @@ int	ft_strlen(const char *s)
 	return (i);
 }
 
-int	check_out_nbr(unsigned long nbr, int neg)
+uint64_t ft_atoi(const char *str)
 {
-	if (nbr > 9223372036854775807)
-	{
-		if (neg == 1)
-			return (-1);
-		else if (neg == -1)
-			return (0);
-	}
-	return (nbr * neg);
-}
-
-int	ft_atoi(const char *str)
-{
-	unsigned long			nbr;
-	int						is_negative;
+	uint64_t nbr;
 
 	nbr = 0;
-	is_negative = 1;
-	while ((*str == ' ' || *str == ' ' || *str == '\n' || *str
-			== '\r' || *str == '\v' || *str == '\f'))
+	while ((*str == ' ' || *str == ' ' || *str == '\n' || *str == '\r' || *str == '\v' || *str == '\f'))
 		str++;
-	if (*str == '+')
-		str++;
-	else if (*str == '-')
+	while (*str >= '0' && *str <= '9')
 	{
-		str++;
-		is_negative = -1;
-	}
-	while (*str != '\0')
-	{
-		if (*str >= '0' && *str <= '9')
-			nbr = nbr * 10 + (*str - 48);
-		else
-			return (is_negative * nbr);
+		nbr = nbr * 10 + (*str - 48);
+		if (nbr > LONG_MAX)
+		{
+			printf("Please provide a reasonable number asat!\n");
+			exit(0);
+		}
 		str++;
 	}
-	return (check_out_nbr(nbr, is_negative));
+	return (nbr);
 }
 
-void	chek_av(int ac, char **av)
+void check_av(int ac, char **av)
 {
 	int	len;
 	int	i;
@@ -72,8 +52,8 @@ void	chek_av(int ac, char **av)
 
 	if (ac < 5 || ac > 6)
 	{
-		write(1, "Issue in number of arguments!\nPlease provide : number_of_philosophers \
-            | time_to_die | time_to_eat | time_to_sleep\n", 114);
+		printf("Issue in arguments!\nPlease provide : number_of_philosophers |\
+time_to_die | time_to_eat | time_to_sleep\n");
 		exit(0);
 	}
 	i = 0;
@@ -81,12 +61,14 @@ void	chek_av(int ac, char **av)
 	{
 		len = ft_strlen(av[i]);
 		j = -1;
+		if (!len)
+			len = 1;
 		while (++j < len)
 		{
-			if (av[i][j] < '0' || av[i][j] > '9')
+			if (av[i][j] < '0' || av[i][j] > '9' || !av[i][0])
 			{
-				write(1, "Issue in arguments!\nPlease provide : number_of_philosophers |\
-                     time_to_die | time_to_eat | time_to_sleep\n", 114);
+				printf("Issue in arguments!\nPlease provide : number_of_philosophers |\
+time_to_die | time_to_eat | time_to_sleep\n");
 				exit(0);
 			}
 		}

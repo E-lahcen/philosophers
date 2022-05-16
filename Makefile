@@ -6,7 +6,7 @@
 #    By: lelhlami <lelhlami@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/04/09 13:56:29 by lelhlami          #+#    #+#              #
-#    Updated: 2022/05/09 11:15:30 by lelhlami         ###   ########.fr        #
+#    Updated: 2022/05/10 11:24:30 by lelhlami         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -30,6 +30,7 @@ HEADER = philo.h
 CC = gcc
 
 FLAGS = -Wall -Wextra -Werror
+# FLAGS = -Wall -Wextra -Werror -fsanitize=thread
 
 ### COLORS ###
 NOC         = \033[0m
@@ -58,8 +59,8 @@ tmp:
 	@mkdir -p objs
 
 %.o : %.c
-
 	@$(CC) $(FLAGS) -c $<
+
 clean:
 	@echo "$(VIOLET)Deleting Philosophers library files$(CYAN)"
 	@rm -f $(OBJS)

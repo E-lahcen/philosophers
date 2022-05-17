@@ -6,13 +6,13 @@
 /*   By: lelhlami <lelhlami@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/09 12:38:43 by lelhlami          #+#    #+#             */
-/*   Updated: 2022/05/16 16:09:53 by lelhlami         ###   ########.fr       */
+/*   Updated: 2022/05/17 19:41:36 by lelhlami         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/philo.h"
 
-void	controller(t_args *args)
+int	controller(t_args *args)
 {
 	uint64_t	time;
 	uint64_t	i;
@@ -27,11 +27,18 @@ void	controller(t_args *args)
 		if (!args->philos[i].is_eating && get_time_now() > time)
 		{
 			time = get_time_now() - args->start_time;
+			pthread_mutex_lock(&args->print_lock);
 			printf("%llu %llu died\n", get_time_now() - args->start_time, i + 1);
-			exit(0);
+			return (0 * free_all(args, args->th));
 		}
-		time_sleep_checker(&args->philos[i], 30);
+		if (args->ph_must_eat == args->nb_ph)
+		{
+			pthread_mutex_lock(&args->print_lock);
+			return (0 * free_all(args, args->th));
+		}
+		my_sleep(50);
 	}
+	return (1);
 }
 
 void	*philosopher(void *philo_arg)
@@ -46,34 +53,32 @@ void	*philosopher(void *philo_arg)
 		leave_shopstick(philo);
 		thinking_time(philo);
 	}
+	return (0);
 }
 
 int	main(int ac, char **av)
 {
-	pthread_t	*th;
 	t_args		args;
-	uint64_t			i;
+	uint64_t	i;
 
-	check_av(ac, av);
-	args.nb_ph = ft_atoi(av[1]);
-	if (args.nb_ph > 1000)
-		return(printf("Big amount of philos, Malloc issue.\n"));
-	args.start_time = get_time_now();
-	init_philos(ac, av, &args);
-	th = malloc(sizeof(pthread_t) * args.nb_ph);
-	if (!th)
+	if (!check_ac(ac, av, &args) || !check_av(ac, av) || \
+!init_philos(ac, av, &args))
+		return (-1);
+	args.th = malloc(sizeof(pthread_t) * args.nb_ph);
+	if (!args.th)
 		return (-1);
 	i = -1;
 	while (++i < args.nb_ph)
 	{
-		if (pthread_create(&th[i], NULL, &philosopher, &args.philos[i]))
-			exit(printf("Issue in thread creation\n"));
-		my_sleep(100);
+		if (pthread_create(&args.th[i], NULL, &philosopher, &args.philos[i]))
+			return (printf("Issue in thread creation\n"));
+		my_sleep(10);
 	}
-	controller(&args);
 	i = -1;
+	if (!controller(&args))
+		return (-1);
 	while (++i < args.nb_ph)
-		pthread_join(th[i], NULL);
-	free_all(&args, th);
+		pthread_join(args.th[i], NULL);
+	free_all(&args, args.th);
 	return (0);
 }

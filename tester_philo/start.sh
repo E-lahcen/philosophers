@@ -64,7 +64,7 @@ test_two ()
     done
     sleep 1
     if [ $error -eq 0 ];then
-        pkill w
+        pkill $1
         echo "\r\e[92m[+] Test #2 Succeeded\e[0m"
     fi
 }

@@ -6,7 +6,7 @@
 /*   By: lelhlami <lelhlami@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/09 12:38:43 by lelhlami          #+#    #+#             */
-/*   Updated: 2022/05/17 19:41:36 by lelhlami         ###   ########.fr       */
+/*   Updated: 2022/05/17 21:03:39 by lelhlami         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,7 +72,7 @@ int	main(int ac, char **av)
 	{
 		if (pthread_create(&args.th[i], NULL, &philosopher, &args.philos[i]))
 			return (printf("Issue in thread creation\n"));
-		my_sleep(10);
+		my_sleep(50);
 	}
 	i = -1;
 	if (!controller(&args))

@@ -6,7 +6,7 @@
 /*   By: lelhlami <lelhlami@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/26 17:11:17 by lelhlami          #+#    #+#             */
-/*   Updated: 2022/05/17 19:43:45 by lelhlami         ###   ########.fr       */
+/*   Updated: 2022/05/17 20:13:08 by lelhlami         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,4 +22,21 @@ int	ft_strlen(const char *s)
 		i++;
 	}
 	return (i);
+}
+
+int	free_all(t_args *args, pthread_t *th)
+{
+	uint64_t	i;
+
+	i = -1;
+	while (++i < args->nb_ph)
+		pthread_mutex_destroy(&args->shopsticks[i]);
+	pthread_mutex_destroy(&args->print_lock);
+	free(args->shopsticks);
+	i = -1;
+	while (++i)
+		pthread_detach(th[i]);
+	free(args->philos);
+	free(th);
+	return (0);
 }

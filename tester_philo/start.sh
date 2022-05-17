@@ -208,6 +208,7 @@ if [ "$2" -eq 2 -o "$2" -eq 0 ];then
         echo "\n[+] There's a problem while compiling $target, please recheck your inputs"
         exit
     fi
+    test_two $target $1
 
     test_one $target $1
 
@@ -217,7 +218,6 @@ if [ "$2" -eq 2 -o "$2" -eq 0 ];then
     test_four $target $1 12 48 3
     test_four $target $1 15 60 4
 
-    test_two $target $1
 
     test_three $target $1
 

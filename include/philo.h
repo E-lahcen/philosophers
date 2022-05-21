@@ -6,7 +6,7 @@
 /*   By: lelhlami <lelhlami@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/09 12:39:27 by lelhlami          #+#    #+#             */
-/*   Updated: 2022/05/17 19:40:08 by lelhlami         ###   ########.fr       */
+/*   Updated: 2022/05/21 16:38:37 by lelhlami         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,6 @@ typedef struct s_philo
 	int				must_eat;
 	uint64_t		last_meal;
 	int				is_eating;
-	pthread_mutex_t	lock_controller;
 	struct s_args	*args;
 }	t_philo;
 
@@ -44,6 +43,7 @@ typedef struct s_args
 	uint64_t		ph_must_eat;
 	pthread_mutex_t	*shopsticks;
 	pthread_mutex_t	print_lock;
+	int				dead;
 }	t_args;
 
 uint64_t	ft_atoi(const char *str);
@@ -57,8 +57,8 @@ void		leave_shopstick(t_philo *philo);
 void		pick_shopstick(t_philo *philo);
 void		thinking_time(t_philo *philo);
 void		eating_time(t_philo *philo);
-int			time_sleep_checker(t_philo *philo, int loop);
-void		my_sleep(uint64_t pause);
+int			my_sleep(uint64_t pause);
 int			check_ac(int ac, char **av, t_args *args);
+int			create_thread(t_args *args, uint64_t limit, uint64_t p);
 
 #endif

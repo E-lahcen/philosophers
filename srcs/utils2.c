@@ -6,7 +6,7 @@
 /*   By: lelhlami <lelhlami@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/19 18:57:48 by lelhlami          #+#    #+#             */
-/*   Updated: 2022/05/17 20:13:05 by lelhlami         ###   ########.fr       */
+/*   Updated: 2022/05/19 13:10:17 by lelhlami         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,9 @@ void	thinking_time(t_philo *philo)
 	uint64_t	time;
 
 	time = get_time_now() - philo->args->start_time;
+	pthread_mutex_lock(&philo->args->print_lock);
 	printf("%llu %d is thinking\n", time, philo->id + 1);
+	pthread_mutex_unlock(&philo->args->print_lock);
 }
 
 void	pick_shopstick(t_philo *philo)

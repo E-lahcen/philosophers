@@ -121,8 +121,8 @@ test_five ()
     i=1
     t=0
     error=0
-    while [ $i -le 10 ];do
-        ("$2/$1/$1" 2 60 60 60 > "./log_$1")&
+        while [ $i -le 10 ];do
+            ("$2/$1/$1" 2 60 60 60 > "./log_$1")&
         sleep 2
         pgrep $1 > /dev/null
         if [ "$?" -eq 1 ];then
@@ -208,21 +208,25 @@ if [ "$2" -eq 2 -o "$2" -eq 0 ];then
         echo "\n[+] There's a problem while compiling $target, please recheck your inputs"
         exit
     fi
-    test_two $target $1
 
-    test_one $target $1
-
+    test_six $target $1
+    
     echo "\e[94m[+] Test #4 on progress, please wait...\e[0m"
     test_four $target $1 7 28 1
     test_four $target $1 10 40 2
-    test_four $target $1 12 48 3
     test_four $target $1 15 60 4
+    test_four $target $1 12 48 3
 
+    test_one $target $1
 
+    test_two $target $1
+    
     test_three $target $1
+    
 
     test_five $target $1
 
-    test_six $target $1
+
+
     rm -rf "./log_$target"
 fi

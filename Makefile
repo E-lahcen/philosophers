@@ -6,7 +6,7 @@
 #    By: lelhlami <lelhlami@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/04/09 13:56:29 by lelhlami          #+#    #+#              #
-#    Updated: 2022/05/16 17:04:15 by lelhlami         ###   ########.fr        #
+#    Updated: 2022/05/18 11:19:00 by lelhlami         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -31,7 +31,6 @@ HEADER = philo.h
 CC = gcc
 
 FLAGS = -Wall -Wextra -Werror
-# FLAGS = -Wall -Wextra -Werror -fsanitize=thread
 
 ### COLORS ###
 NOC         = \033[0m

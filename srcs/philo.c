@@ -6,7 +6,7 @@
 /*   By: lelhlami <lelhlami@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/09 12:38:43 by lelhlami          #+#    #+#             */
-/*   Updated: 2022/05/17 21:03:39 by lelhlami         ###   ########.fr       */
+/*   Updated: 2022/05/21 17:09:56 by lelhlami         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,6 @@
 
 int	controller(t_args *args)
 {
-	uint64_t	time;
 	uint64_t	i;
 
 	i = 0;
@@ -23,20 +22,20 @@ int	controller(t_args *args)
 		i++;
 		if (i == args->nb_ph)
 			i = 0;
-		time = args->philos[i].last_meal + args->time_to_die;
-		if (!args->philos[i].is_eating && get_time_now() > time)
+		if (!args->philos[i].is_eating && get_time_now() > \
+args->philos[i].last_meal + args->time_to_die)
 		{
-			time = get_time_now() - args->start_time;
 			pthread_mutex_lock(&args->print_lock);
-			printf("%llu %llu died\n", get_time_now() - args->start_time, i + 1);
-			return (0 * free_all(args, args->th));
+			printf("%llu %d died\n", get_time_now() - \
+args->start_time, args->philos[i].id + 1);
+			return (0);
 		}
 		if (args->ph_must_eat == args->nb_ph)
 		{
 			pthread_mutex_lock(&args->print_lock);
-			return (0 * free_all(args, args->th));
+			return (0);
 		}
-		my_sleep(50);
+		usleep(5);
 	}
 	return (1);
 }
@@ -53,13 +52,23 @@ void	*philosopher(void *philo_arg)
 		leave_shopstick(philo);
 		thinking_time(philo);
 	}
-	return (0);
+}
+
+int	create_thread(t_args *args, uint64_t limit, uint64_t p)
+{
+	while (p < limit)
+	{
+		if (pthread_create(&args->th[p], NULL, &philosopher, &args->philos[p]))
+			return (printf("Issue in thread creation\n"));
+			p += 2;
+		usleep(1);
+	}
+	return (1);
 }
 
 int	main(int ac, char **av)
 {
 	t_args		args;
-	uint64_t	i;
 
 	if (!check_ac(ac, av, &args) || !check_av(ac, av) || \
 !init_philos(ac, av, &args))
@@ -67,18 +76,9 @@ int	main(int ac, char **av)
 	args.th = malloc(sizeof(pthread_t) * args.nb_ph);
 	if (!args.th)
 		return (-1);
-	i = -1;
-	while (++i < args.nb_ph)
-	{
-		if (pthread_create(&args.th[i], NULL, &philosopher, &args.philos[i]))
-			return (printf("Issue in thread creation\n"));
-		my_sleep(50);
-	}
-	i = -1;
+	create_thread(&args, args.nb_ph, 0);
+	create_thread(&args, args.nb_ph, 1);
 	if (!controller(&args))
-		return (-1);
-	while (++i < args.nb_ph)
-		pthread_join(args.th[i], NULL);
-	free_all(&args, args.th);
+		return (free_all(&args, args.th));
 	return (0);
 }

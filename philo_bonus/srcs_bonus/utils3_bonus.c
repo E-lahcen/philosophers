@@ -1,72 +1,81 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   utils2.c                                           :+:      :+:    :+:   */
+/*   utils3_bonus.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: lelhlami <lelhlami@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2022/04/19 18:57:48 by lelhlami          #+#    #+#             */
-/*   Updated: 2022/05/19 13:10:17 by lelhlami         ###   ########.fr       */
+/*   Created: 2022/04/26 17:39:17 by lelhlami          #+#    #+#             */
+/*   Updated: 2022/05/21 15:43:09 by lelhlami         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../include/philo.h"
+#include "../include_bonus/philo_bonus.h"
 
 void	eating_time(t_philo *philo)
 {
 	uint64_t	time;
 
 	philo->is_eating = 1;
+	sem_wait(philo->args->lock_print);
 	philo->last_meal = get_time_now();
 	philo->must_eat--;
 	time = get_time_now() - philo->args->start_time;
-	pthread_mutex_lock(&philo->args->print_lock);
 	printf("%llu %d is eating\n", time, philo->id + 1);
-	pthread_mutex_unlock(&philo->args->print_lock);
-	my_sleep(philo->args->time_to_eat);
+	sem_post(philo->args->lock_print);
 	philo->is_eating = 0;
+	my_sleep(philo->args->time_to_eat, philo);
 	if (!philo->must_eat)
-	{
-		philo->args->ph_must_eat++;
-		philo->must_eat--;
-	}
+		philo->args->dead = 1;
 }
 
 void	thinking_time(t_philo *philo)
 {
 	uint64_t	time;
 
+	sem_wait(philo->args->lock_print);
 	time = get_time_now() - philo->args->start_time;
-	pthread_mutex_lock(&philo->args->print_lock);
 	printf("%llu %d is thinking\n", time, philo->id + 1);
-	pthread_mutex_unlock(&philo->args->print_lock);
+	sem_post(philo->args->lock_print);
 }
 
 void	pick_shopstick(t_philo *philo)
 {
 	uint64_t	time;
 
-	pthread_mutex_lock(&philo->args->shopsticks[philo->shopstick_l]);
+	sem_wait(philo->args->shopsticks);
+	sem_wait(philo->args->lock_print);
 	time = get_time_now() - philo->args->start_time;
-	pthread_mutex_lock(&philo->args->print_lock);
 	printf("%llu %d has taken a fork\n", time, philo->id + 1);
-	pthread_mutex_unlock(&philo->args->print_lock);
-	pthread_mutex_lock(&philo->args->shopsticks[philo->shopstick_r]);
+	sem_post(philo->args->lock_print);
+	sem_wait(philo->args->shopsticks);
+	sem_wait(philo->args->lock_print);
 	time = get_time_now() - philo->args->start_time;
-	pthread_mutex_lock(&philo->args->print_lock);
 	printf("%llu %d has taken a fork\n", time, philo->id + 1);
-	pthread_mutex_unlock(&philo->args->print_lock);
+	sem_post(philo->args->lock_print);
 }
 
 void	leave_shopstick(t_philo *philo)
 {
 	uint64_t	time;
 
-	pthread_mutex_unlock(&philo->args->shopsticks[philo->shopstick_l]);
-	pthread_mutex_unlock(&philo->args->shopsticks[philo->shopstick_r]);
+	sem_post(philo->args->shopsticks);
+	sem_post(philo->args->shopsticks);
+	sem_wait(philo->args->lock_print);
 	time = get_time_now() - philo->args->start_time;
-	pthread_mutex_lock(&philo->args->print_lock);
 	printf("%llu %d is sleeping\n", time, philo->id + 1);
-	pthread_mutex_unlock(&philo->args->print_lock);
-	my_sleep(philo->args->time_to_sleep);
+	sem_post(philo->args->lock_print);
+	my_sleep(philo->args->time_to_sleep, philo);
+}
+
+void	my_sleep(uint64_t pause, t_philo *philo)
+{
+	uint64_t	time;
+
+	time = get_time_now();
+	while (get_time_now() < time + pause)
+	{
+		ft_check(philo);
+		usleep(50);
+	}
 }

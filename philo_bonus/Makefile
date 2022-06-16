@@ -6,27 +6,26 @@
 #    By: lelhlami <lelhlami@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/04/09 13:56:29 by lelhlami          #+#    #+#              #
-#    Updated: 2022/05/18 11:19:00 by lelhlami         ###   ########.fr        #
+#    Updated: 2022/04/26 17:43:39 by lelhlami         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-NAME = philo
+NAME = philo_bonus
 
-SRC_PATH  = srcs
+SRC_PATH  = srcs_bonus
 
-OBJ_PATH  = objs
+OBJ_PATH  = objs_bonus
 
-SOURCES = 	philo.c \
-			utils.c \
-			utils3.c \
-			utils2.c \
-			check_data.c
+SOURCES = 	philo_bonus.c \
+			utils_bonus.c \
+			utils2_bonus.c \
+			utils3_bonus.c
 
 SRCS = $(addprefix $(SRC_PATH)/,$(SOURCES))
 
 OBJS = $(addprefix $(OBJ_PATH)/,$(SOURCES:.c=.o))
 
-HEADER = philo.h
+HEADER = philo_bonus.h
 
 CC = gcc
 
@@ -49,30 +48,26 @@ all: tmp $(NAME)
 
 $(NAME): $(OBJS)
 	@$(CC) $(FLAGS) $(OBJS) -o $@ 
-	@echo "$(GREEN)Project successfully compiled"
+	@echo "$(GREEN)Bonus part successfully compiled"
 	
-$(OBJ_PATH)/%.o: $(SRC_PATH)/%.c include/$(HEADER)
+$(OBJ_PATH)/%.o: $(SRC_PATH)/%.c include_bonus/$(HEADER)
 	@$(CC) $(FLAGS) -c -o $@ $<
-	@echo "$(BLUE)Creating object file -> $(WHITE)$(notdir $@)... $(RED)[Done]$(NOC)"
+	@echo "$(BLUE)Creating bonus object file -> $(WHITE)$(notdir $@)... $(RED)[Done]$(NOC)"
 
 tmp:
-	@mkdir -p objs
+	@mkdir -p objs_bonus
 
 %.o : %.c
 	@$(CC) $(FLAGS) -c $<
 
 clean:
-	@echo "$(VIOLET)Deleting Philosophers library files$(CYAN)"
+	@echo "$(VIOLET)Deleting Bonus Philosophers object library files$(CYAN)"
 	@rm -f $(OBJS)
-	@make clean -C ../philo_bonus
 
 fclean: clean
 	@rm -f $(NAME)
 	@rm -rf $(OBJ_PATH)
-	@make fclean -C ../philo_bonus
 
 re: fclean all
 
-bonus:
-	make -C ../philo_bonus
-.PHONY: tmp, re, fclean, clean, bonus, all
+.PHONY: tmp, re, fclean, clean, all
